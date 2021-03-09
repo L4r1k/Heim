@@ -36,7 +36,7 @@ def auth():
 
 @app.route('/auth', methods=['GET'])
 def get_token():
-    access_token = request.args['access_token']
+    access_token = request.args.get('access_token')
     if access_token:
         return jsonify(access_token=access_token)
     else:
