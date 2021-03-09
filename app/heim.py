@@ -1,6 +1,7 @@
-from flask import Flask, render_template, jsonify, request, redirect
+from flask import Flask, render_template, jsonify, request, redirect, url_for, abort
 from flask_jwt_extended import create_access_token, get_jwt_identity, get_unverified_jwt_headers, jwt_required, JWTManager 
 import random
+import requests
 
 app = Flask(__name__)
 app.config['DEBUG'] = True
@@ -31,10 +32,15 @@ def auth():
     else:
         access_token = create_access_token(identity=username)
 
-        return jsonify(
-            access_token=access_token, 
-            jwt_secret_key=app.config['JWT_SECRET_KEY']
-        )
+        return redirect(url_for('.auth', access_token=access_token, jwt_secret_key=app.config['JWT_SECRET_KEY']), 302)
+
+@app.route('/auth', methods=['GET'])
+def get_token():
+    access_token = request.args['access_token']
+    if access_token:
+        return jsonify(access_token=access_token)
+    else:
+        abort(404) 
 
 @app.route('/heim', methods=['GET'])
 @jwt_required()
