@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<meta http-equiv="X-UA-Compatible" content="ie=edge">
+		<meta name="description" content="Heim">
+		<title>Heim</title>
+		<style>
+		@import url('https://fonts.googleapis.com/css?family=Press+Start+2P');
+
+		*{
+		    padding: 0px;
+		    margin: 0px;
+		    font-family: 'Press Start 2P', cursive;
+		}
+
+		body {
+		    background-color: #546e7a;
+		}
+
+		.main {
+		    width: 60%;
+		    margin: auto;
+		    margin-top: 10%;
+		    border: 2px solid black;
+		    height: 750px;
+		    background-image: url("/static/Longhouse.jpg");
+		}
+
+		.heading{
+		    text-align: center;
+		    padding: 10px;
+		    margin-top: 15%;
+		}
+
+		input {
+		    display: block;
+		    width: 80%;
+		    padding: 10px;
+		    margin: auto;
+		    margin-top: 20px;
+		}
+
+		input[type="submit"] {
+		    text-transform: uppercase;
+		    padding: 5px;
+		}
+		</style>
+	</head>
+	<body>
+		<div class="main">
+			<h1 class="heading">Heim</h1>
+			<p class="heading" style="color:darkcyan">Only those who BEARER a token may enter</p>
+			<div class="form">
+				<form action="/auth" method="POST">
+					<input type="text" name="username" placeholder="Name" required>
+					<input type="submit" name="submit" value="Enter">
+				</form>
+			</div>
+		</div>
+	</body>
+</html>
