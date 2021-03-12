@@ -22,21 +22,31 @@
 		.main {
 		    width: 60%;
 		    margin: auto;
-		    margin-top: 10%;
+		    margin-top: 5%;
 		    border: 2px solid black;
 		    height: 750px;
 		    background-image: url("/static/Longhouse.jpg");
 		}
 
-		.heading{
+		.heading {
 		    text-align: center;
 		    padding: 10px;
-		    margin-top: 15%;
+		    margin-top: 10%;
+		}
+
+		.subheading {
+			text-align: center;
+			padding: 10px;
+			margin-top: 2%;
+		}
+
+		form {
+			margin-top: 10%;
 		}
 
 		input {
 		    display: block;
-		    width: 80%;
+		    width: 50%;
 		    padding: 10px;
 		    margin: auto;
 		    margin-top: 20px;
@@ -51,7 +61,7 @@
 	<body>
 		<div class="main">
 			<h1 class="heading">Heim</h1>
-			<p class="heading" style="color:darkcyan">Only those who BEARER a token may enter</p>
+			<p class="subheading" style="color:darkcyan">Only those who BEARER a token may enter</p>
 			<div class="form">
 				<form action="/auth" method="POST">
 					<input type="text" name="username" placeholder="Name" required>

