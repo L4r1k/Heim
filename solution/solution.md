@@ -34,7 +34,7 @@ Save the provided `access_key` and leaked `jwt_secret_key` somewhere for later.
 
 ## [1.2] Gaining Access
 
-Now we can a GET request to `localhost:8080`, passing the retrieved `access_key` as a BEARER token for authorization (following the hint provided on the home page).
+Now we can make a GET request to `localhost:8080`, passing the retrieved `access_key` as a BEARER token for authorization (following the hint provided on the home page).
 
 ```bash
 curl --location --request GET 'localhost:8080' \
@@ -156,6 +156,6 @@ curl --location --request GET 'localhost:8080/flag' \
 
 ```json
 {
-    "flag": "flag{liveheim_laughheim_loveheim}"
+    "flag": "UMASS{liveheim_laughheim_loveheim}"
 }
 ```
