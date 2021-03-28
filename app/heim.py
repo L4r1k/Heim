@@ -44,7 +44,7 @@ def auth():
             abort(404) 
     elif request.method == 'POST':
         username = request.form['username']
-        if username == 'odin':
+        if username.lower() == 'odin':
             return jsonify(error='You are not wise enough to be Odin'), 401 
         else:
             access_token = create_access_token(identity=username)
