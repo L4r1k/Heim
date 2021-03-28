@@ -9,7 +9,7 @@ app.config['SECRET_KEY'] = '629cc538-2d80-4bf8-87f6-7ccde1c70e2e'
 app.config['JWT_SECRET_KEY'] = 'arottenbranchwillbefoundineverytree'
 jwt = JWTManager(app)
 
-FLAG = 'flag{liveheim_laughheim_loveheim}'
+FLAG = 'UMASS{liveheim_laughheim_loveheim}'
 error_prompts = [
     'The forest is moving',
     'The ground is shaking',
